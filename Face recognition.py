@@ -1,12 +1,17 @@
 import cv2
 import os
+import sys
 import numpy as np
 import FaceDetection
-
+import warnings
+from os import system
+import os
+warnings.filterwarnings("ignore")
 faces=[]
 labels=[]
 names={}
-training_folder = "training-data"
+dirpath = os.getcwd()
+training_folder = dirpath+"/training-data"
 
 def newUser():
     name = input("Enter Your Name: ")
@@ -19,6 +24,7 @@ def newUser():
         test = frame.copy()
         frame,frame_crop,rect = FaceDetection.detect_faces(FaceDetection.lbp_face_cascade,frame)
         cv2.imshow('Smile :) with different moods', frame)
+        cv2.waitKey(50)
         if frame_crop!="None" and i<100:
             print(training_folder+"/" + name + '@' + str(len(dirs)+1) + '/' + str(i) + '.jpg')
             cv2.imwrite(training_folder+"/" + name + '@' + str(len(dirs)+1) + '/' + str(i) + '.jpg', frame_crop)
@@ -48,25 +54,37 @@ def createLables():
             #cv2.destroyAllWindows()
             faces.append(face)
             labels.append(lable)
-    print("Labels: "+ str(labels))
-    print("Total Number of Faces: "+str(len(faces)))
-    print(names)
+    #print("Labels: "+ str(labels))
+    #print("Total Number of Faces: "+str(len(faces)))
+    #print(names)
 
 face_recognizer = object
 def trainDataLBPH():
     # create our LBPH face recognizer
     #face_recognizer = cv2.
     global face_recognizer
-    face_recognizer = cv2.face.createLBPHFaceRecognizer()
-    face_recognizer.train(faces, np.array(labels))
+    if len(labels)>0:
+        face_recognizer = cv2.face.createLBPHFaceRecognizer()
+        face_recognizer.train(faces, np.array(labels))
+    else:
+        print("No train data is present. Add train data using -train flag.")
+        sys.exit()
 def trainDataEigen():
     # or use EigenFaceRecognizer by replacing above line with
-    face_recognizer = cv2.face.createEigenFaceRecognizer()
-    face_recognizer.train(faces, np.array(labels))
+    if len(labels)>0:
+        face_recognizer = cv2.face.createEigenFaceRecognizer()
+        face_recognizer.train(faces, np.array(labels))
+    else:
+        print("No train data is present. Add train data using -train flag.")
+        sys.exit()
 def trainDataFisher():
     # or use FisherFaceRecognizer by replacing above line with
-    face_recognizer = cv2.face.createFisherFaceRecognizer()
-    face_recognizer.train(faces, np.array(labels))
+    if len(labels)>0:
+        face_recognizer = cv2.face.createFisherFaceRecognizer()
+        face_recognizer.train(faces, np.array(labels))
+    else:
+        print("No train data is present. Add train data using -train flag.")
+        sys.exit()
 
 
 def draw_rectangle(img, rect):
@@ -84,28 +102,44 @@ def predict(test_img):
     else:
         face = cv2.cvtColor(np.array(face,dtype=np.uint16),cv2.COLOR_BGR2GRAY)
         label,conf = face_recognizer.predict(np.array(face,dtype=np.uint16))
-        label_text = names[label]
+        if label==-1:
+        	label_text = "unknown"
+        else:
+        	label_text = names[label]
     #print(face)
         draw_rectangle(img, rect)
         draw_text(img, label_text, rect[0], rect[1] - 5)
-    print(face)
+   # print(face)
     return img
 
 def newUserTest():
     cap = cv2.VideoCapture(0)
+    os.system('cls')
+    previous_label = ""
     while (True):
         ret, frame = cap.read()
         #test = frame.copy()
         frame,frame_crop,rect = FaceDetection.detect_faces(FaceDetection.haar_face_cascade,frame,1.1)
-
         if frame_crop == "None":
             pass
         else:
+            
             frame_crop = cv2.cvtColor(np.array(frame_crop, dtype=np.uint16), cv2.COLOR_BGR2GRAY)
             label, conf = face_recognizer.predict(np.array(frame_crop, dtype=np.uint16))
-            label_text = names[label]
-            # print(face)
+            if label == -1:
+            	label_text = "unknown"
+            else:
+            	label_text = names[label]
+            #label_text = names[label]
+                # print(face)
             draw_rectangle(frame, rect)
+            global pass_name
+            if previous_label!=label_text:
+                os.system('cls')
+                previous_label = label_text
+                print(label_text)
+                if label_text==pass_name and pass_name!='':
+                    sys.exit()
             draw_text(frame, label_text, rect[0], rect[1] - 5)
         cv2.imshow('Smile :) with different moods', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -115,13 +149,35 @@ def newUserTest():
     cap.release()
     cv2.destroyAllWindows()
 
-newUser()
-createLables()
-trainDataLBPH()
-newUserTest()
-#img = predict(cv2.imread("sample.jpg"))
-#cv2.imshow("final",img)
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
-
-#
+if __name__ == '__main__':
+    if len(sys.argv)>1:
+        if str(sys.argv[1]) == '-train':
+            newUser()       
+        elif str(sys.argv[1]) == '-run':
+            pass_name=''
+            createLables()
+            os.system('cls')
+            trainDataLBPH()
+            os.system('cls')
+            newUserTest()
+        else:
+            pass_name = sys.argv[1] 
+            createLables()
+            os.system('cls')
+            trainDataLBPH()
+            os.system('cls')
+            newUserTest()
+    else:
+        createLables()
+        os.system('cls')
+        trainDataLBPH()
+        os.system('cls')
+        newUserTest()
+    '''
+    newUser()
+    createLables()
+    os.system('cls')
+    trainDataLBPH()
+    os.system('cls')
+    newUserTest()
+    '''

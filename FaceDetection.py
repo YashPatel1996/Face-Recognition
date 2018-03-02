@@ -13,8 +13,8 @@ minNeighbors:
 
 import cv2
 
-haar_face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
-lbp_face_cascade = cv2.CascadeClassifier('lbpcascade_frontalface.xml')
+haar_face_cascade = cv2.CascadeClassifier('F:/Projects & Internship/Fusion R&D/Yash_branch/Face Recognition/haarcascade_frontalface_alt.xml')
+lbp_face_cascade = cv2.CascadeClassifier('F:/Projects & Internship/Fusion R&D/Yash_branch/Face Recognition/lbpcascade_frontalface.xml')
 
 
 def detect_faces(f_cascade, colored_img, scaleFactor=1.1):
@@ -64,7 +64,7 @@ def liveFaceDetectHaar():
     while(True):
         ret, frame = cap.read()
         frame = detect_faces(haar_face_cascade,frame,1.1)
-        cv2.imshow('frame',frame)
+        cv2.imshow("frame",frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             #cv2.imwrite("sample.jpg",frame)
             break
@@ -72,5 +72,5 @@ def liveFaceDetectHaar():
     cv2.destroyAllWindows()
 
 
-#liveFaceDetectLbp()
+#liveFaceDetectHaar()
 #liveFaceDetectLbp()
